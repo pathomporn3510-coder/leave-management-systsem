@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { TopActionIcons } from "@/app/(dashboard)/dashboard/manager/top-action-icons"
 
 export function AppNavbar() {
   const pathname = usePathname()
@@ -102,6 +103,7 @@ export function AppNavbar() {
       <div className="w-full flex-1">
         {/* Placeholder for Search or Breadcrumbs */}
       </div>
+      <TopActionIcons />
       <DropdownMenu>
         <DropdownMenuTrigger
           render={

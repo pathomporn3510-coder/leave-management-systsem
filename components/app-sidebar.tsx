@@ -13,6 +13,7 @@ import {
   LogOut,
   Users,
   Settings,
+  ClipboardCheck,
   Building2,
   FileText
 } from "lucide-react"
@@ -24,7 +25,7 @@ export function AppSidebar() {
 
   const getLinks = () => {
     const baseLinks = [
-      { name: "Dashboard", href: "/dashboard", icon: PieChart },
+      { name: "Dashboard", href: role === "MANAGER" ? "/dashboard/manager" : "/dashboard", icon: PieChart },
     ]
 
     if (role === "USER") {
@@ -39,7 +40,11 @@ export function AppSidebar() {
 
     if (role === "MANAGER") {
       baseLinks.push(
-        { name: "คำขอของทีม", href: "/dashboard/manager/leaves", icon: Users },
+        { name: "สร้างคำขอลา", href: "/dashboard/manager/leaves/new", icon: SquarePen },
+        { name: "สถานะการลา", href: "/dashboard/manager/leaves/status", icon: Activity },
+        { name: "ประวัติการลา", href: "/dashboard/manager/leaves/my", icon: BookText },
+        { name: "ปฏิทินวันลา", href: "/dashboard/manager/leaves/calendar", icon: CalendarDays },
+        { name: "อนุมัติการลา", href: "/dashboard/manager/leaves", icon: ClipboardCheck },
       )
     }
 
