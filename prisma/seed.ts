@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt'
 const prisma = new PrismaClient()
 
 async function main() {
-  const password = await bcrypt.hash('password123', 10)
+  const password = await bcrypt.hash('1234', 10)
 
   // 1. Create Leave Types
   const sickLeave = await prisma.leaveType.upsert({

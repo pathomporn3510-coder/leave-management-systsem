@@ -14,7 +14,8 @@ import {
   Users,
   Settings,
   Building2,
-  FileText
+  FileText,
+  FileCheck
 } from "lucide-react"
 
 export function AppSidebar() {
@@ -23,8 +24,13 @@ export function AppSidebar() {
   const role = session?.user?.role
 
   const getLinks = () => {
+    let dashboardHref = "/dashboard"
+    if (role === "CEO") {
+      dashboardHref = "/dashboard/ceo"
+    }
+
     const baseLinks = [
-      { name: "Dashboard", href: "/dashboard", icon: PieChart },
+      { name: "Dashboard", href: dashboardHref, icon: PieChart },
     ]
 
     if (role === "USER") {
@@ -54,8 +60,9 @@ export function AppSidebar() {
 
     if (role === "CEO") {
       baseLinks.push(
-        { name: "รายงาน", href: "/dashboard/ceo/reports", icon: FileText },
-        { name: "อนุมัติ", href: "/dashboard/ceo/approvals", icon: Users },
+        { name: "อนุมัติการลา", href: "/dashboard/ceo/approvals", icon: FileCheck },
+        { name: "รายงานการลา", href: "/dashboard/ceo/reports", icon: Activity },
+        { name: "ปฏิทินวันลา", href: "/dashboard/ceo/calendar", icon: CalendarDays },
       )
     }
 

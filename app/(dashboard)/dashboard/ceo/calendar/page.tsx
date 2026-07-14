@@ -1,18 +1,16 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import { CEOApprovalsClient } from "./ceo-approvals-client"
+import { CEOCalendarClient } from "./ceo-calendar-client"
 
 export const dynamic = "force-dynamic"
 
-export default async function CEOApprovalsPage() {
+export default async function CEOCalendarPage() {
   const session = await getServerSession(authOptions)
   
   if (!session || session.user.role !== "CEO") {
-    // redirect("/dashboard") // Commented out for mock testing without DB
+    // redirect("/dashboard") // Commented out for UI testing without DB
   }
 
-  // Database call bypassed for UI testing
-  
-  return <CEOApprovalsClient />
+  return <CEOCalendarClient />
 }
