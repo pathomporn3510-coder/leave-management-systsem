@@ -125,13 +125,11 @@ export async function updateLeaveStatus(id: string, newStatus: string, comment?:
       const leaveRequest = await prisma.leaveRequest.findUnique({ where: { id }})
       if (leaveRequest) {
         const currentYear = new Date().getFullYear()
-        await prisma.leaveBalance.update({
+        await prisma.leaveBalance.updateMany({
           where: {
-            employeeId_leaveTypeId_year: {
-              employeeId: leaveRequest.employeeId,
-              leaveTypeId: leaveRequest.leaveTypeId,
-              year: currentYear
-            }
+            employeeId: leaveRequest.employeeId,
+            leaveTypeId: leaveRequest.leaveTypeId,
+            year: currentYear
           },
           data: {
             usedDays: { increment: leaveRequest.days }

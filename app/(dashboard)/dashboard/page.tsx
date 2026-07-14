@@ -79,6 +79,11 @@ export default async function DashboardPage() {
     redirect("/login")
   }
 
+  // Redirect based on role
+  if (session.user.role === "CEO") {
+    redirect("/dashboard/ceo")
+  }
+
   // Fetch some summary stats
   let whereClause = {}
   if (session.user.role === "USER") {
