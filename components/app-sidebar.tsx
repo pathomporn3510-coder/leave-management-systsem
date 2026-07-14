@@ -31,7 +31,7 @@ export function AppSidebar() {
       baseLinks.push(
         { name: "สร้างคำขอลา", href: "/dashboard/user/leaves/new", icon: SquarePen },
         { name: "สถานะการลา", href: "/dashboard/user/leaves/status", icon: Activity },
-        { name: "ประวัติการลา", href: "/dashboard/user/leaves/my", icon: BookText },
+        { name: "ประวัติการลา", href: "/dashboard/user/leaves/history", icon: BookText },
         { name: "ปฏิทินวันลา", href: "/dashboard/user/leaves/calendar", icon: CalendarDays },
         { name: "ข้อมูลส่วนตัว", href: "/dashboard/user/profile", icon: Users }
       )

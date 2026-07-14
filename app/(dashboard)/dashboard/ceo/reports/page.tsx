@@ -15,7 +15,7 @@ const mockData = [
 ]
 
 export default function ReportsPage() {
-  
+
   const exportExcel = () => {
     const ws = utils.json_to_sheet(mockData)
     const wb = utils.book_new()
@@ -26,13 +26,13 @@ export default function ReportsPage() {
   const exportPDF = () => {
     const doc = new jsPDF()
     doc.text("Leave Management Report", 14, 15)
-    
+
     autoTable(doc, {
       startY: 25,
       head: [['ID', 'Employee', 'Type', 'Days', 'Status']],
       body: mockData.map(item => [item.id, item.employee, item.type, item.days, item.status]),
     })
-    
+
     doc.save("Leave_Report.pdf")
   }
 

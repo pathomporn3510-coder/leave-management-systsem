@@ -37,7 +37,7 @@ export default async function LeaveCalendarPage() {
   })
 
   // Format leaves for the calendar client component
-  const formattedLeaves = leaves.map(leave => ({
+  const formattedLeaves = leaves.map((leave: any) => ({
     id: leave.id,
     title: leave.leaveType.name,
     start: leave.startDate.toISOString(),
@@ -46,20 +46,9 @@ export default async function LeaveCalendarPage() {
   }))
 
   return (
-    <div className="flex-col bg-[#E5E7EB] min-h-full">
-      <div className="flex-1 space-y-6 p-4 md:p-8 pt-6">
-        <div className="rounded-2xl bg-[#0B0F4E] p-8 text-white">
-          <h2 className="text-3xl font-bold tracking-tight">ปฏิทินวันลา</h2>
-          <p className="text-[#8890B5] mt-2 text-lg">
-            ดูวันลาของคุณในรูปแบบปฏิทิน
-          </p>
-        </div>
-        
-        <div className="mx-auto mt-8">
-          <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 overflow-hidden p-6 md:p-8">
-            <CalendarView leaves={formattedLeaves} />
-          </div>
-        </div>
+    <div className="flex-col bg-[#cfcfcf] min-h-screen pb-12">
+      <div className="flex-1 p-4 md:p-12 max-w-[1200px] mx-auto">
+        <CalendarView leaves={formattedLeaves} />
       </div>
     </div>
   )

@@ -2,10 +2,8 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import prisma from "@/lib/prisma"
-import { Card, CardContent } from "@/components/ui/card"
 import { format } from "date-fns"
 import { th } from "date-fns/locale"
-import { Clock, CheckCircle2, User, Building2, UserCog } from "lucide-react"
 
 export const dynamic = "force-dynamic"
 
@@ -31,119 +29,132 @@ export default async function LeaveStatusPage() {
     }
   })
 
-  const getStatusSteps = (status: string) => {
+  // Mock data matching Figma design
+  const mockLeaves = [
+    {
+      id: "mock-1",
+      leaveType: { name: "ลาพักร้อน" },
+      startDate: new Date("2027-04-13"),
+      endDate: new Date("2027-04-18"),
+      days: 5,
+      status: "PENDING",
+      createdAt: new Date("2027-03-29T09:30:00"),
+      reason: "พักผ่อนประจำปี",
+    }
+  ]
+
+  // Use actual database data only
+  const displayLeaves = activeLeaves
+
+  const formatLeaveDateRange = (start: Date, end: Date) => {
+    // If same month and year
+    if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
+      return `${format(start, "d")}-${format(end, "d MMM yyyy", { locale: th })}`
+    }
+    return `${format(start, "d MMM")} - ${format(end, "d MMM yyyy", { locale: th })}`
+  }
+
+  const getStatusSteps = (leave: any) => {
+    const status = leave.status;
     return [
       { 
+        id: "SUBMITTED", 
+        name: "ส่งคำขอสำเร็จ", 
+        description: `พนักงานยื่นคำขอ${leave.leaveType.name}ผ่านระบบเรียบร้อยแล้ว`,
+        date: format(new Date(leave.createdAt), "dd MMM yyyy HH:mm น.", { locale: th }),
+        state: "completed", 
+      },
+      { 
         id: "PENDING", 
-        name: "รอหัวหน้าอนุมัติ", 
-        icon: User,
-        completed: ["MANAGER_APPROVED", "HR_APPROVED", "CEO_APPROVED", "APPROVED"].includes(status),
-        current: status === "PENDING"
+        name: "รออนุมัติจาก Manager", 
+        description: "ผู้พิจารณา: คุณสมเกียรติ (Head of Engineering)",
+        state: status === "PENDING" ? "current" : (["MANAGER_APPROVED", "HR_APPROVED", "CEO_APPROVED", "APPROVED"].includes(status) ? "completed" : "upcoming"), 
       },
       { 
         id: "MANAGER_APPROVED", 
-        name: "รอ HR ตรวจสอบ", 
-        icon: Building2,
-        completed: ["HR_APPROVED", "CEO_APPROVED", "APPROVED"].includes(status),
-        current: status === "MANAGER_APPROVED"
+        name: "รออนุมัติจาก HR", 
+        description: "รอการพิจารณาตาม Workflow",
+        state: status === "MANAGER_APPROVED" ? "current" : (["HR_APPROVED", "CEO_APPROVED", "APPROVED"].includes(status) ? "completed" : "upcoming"),
       },
       { 
-        id: "HR_APPROVED", 
-        name: "รอ CEO อนุมัติ", 
-        icon: UserCog,
-        completed: ["CEO_APPROVED", "APPROVED"].includes(status),
-        current: status === "HR_APPROVED"
-      },
-      { 
-        id: "CEO_APPROVED", 
-        name: "อนุมัติสำเร็จ", 
-        icon: CheckCircle2,
-        completed: ["CEO_APPROVED", "APPROVED"].includes(status),
-        current: false
+        id: "COMPLETED", 
+        name: "เสร็จสิ้น (Completed)", 
+        description: "",
+        state: ["HR_APPROVED", "CEO_APPROVED", "APPROVED"].includes(status) ? "completed" : "upcoming",
       },
     ]
   }
 
   return (
-    <div className="flex-col bg-[#E5E7EB] min-h-full">
-      <div className="flex-1 space-y-6 p-4 md:p-8 pt-6">
-        <div className="rounded-2xl bg-[#0B0F4E] p-8 text-white">
-          <h2 className="text-3xl font-bold tracking-tight">สถานะการลา</h2>
-          <p className="text-[#8890B5] mt-2 text-lg">
-            ติดตามสถานะคำขอลาที่กำลังดำเนินการอยู่
-          </p>
-        </div>
+    <div className="flex-col bg-[#E5E7EB] min-h-screen pb-12">
+      <div className="flex-1 p-4 md:p-8 max-w-5xl mx-auto">
         
-        <div className="mx-auto mt-8 space-y-6">
-          {activeLeaves.length === 0 ? (
-            <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-12 text-center">
-              <Clock className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900">ไม่มีคำขอลาที่กำลังดำเนินการ</h3>
-              <p className="text-gray-500 mt-2">คำขอลาทั้งหมดของคุณได้รับการอนุมัติหรือปฏิเสธแล้ว</p>
-            </div>
-          ) : (
-            activeLeaves.map((leave) => {
-              const steps = getStatusSteps(leave.status)
-              
-              return (
-                <Card key={leave.id} className="rounded-2xl border-0 shadow-lg overflow-hidden">
-                  <CardContent className="p-0">
-                    <div className="p-6 border-b border-gray-100 bg-white">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div>
-                          <div className="flex items-center gap-3">
-                            <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">
-                              {leave.leaveType.name}
-                            </span>
-                            <span className="text-sm text-gray-500">
-                              ยื่นเมื่อ {format(new Date(leave.createdAt), "dd MMM yyyy", { locale: th })}
-                            </span>
-                          </div>
-                          <h3 className="text-lg font-bold text-[#0B0F4E] mt-3">
-                            {format(new Date(leave.startDate), "dd MMM yyyy", { locale: th })} - {format(new Date(leave.endDate), "dd MMM yyyy", { locale: th })}
-                          </h3>
-                          <p className="text-gray-600 mt-1">จำนวน {leave.days} วัน</p>
-                          <p className="text-gray-500 mt-2 text-sm italic">"{leave.reason}"</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-gray-50 p-6 md:p-8">
-                      <div className="relative">
-                        <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 -translate-y-1/2 rounded-full hidden md:block"></div>
+        {/* Top Header Bar */}
+        <div className="bg-white rounded-xl shadow-sm p-4 px-6 md:px-8 flex items-center justify-between mb-8">
+          <h2 className="text-xl font-bold text-gray-900">ตรวจสอบสถานะการลา</h2>
+        </div>
+
+        <div className="space-y-8 mt-4">
+          {displayLeaves.map((leave: any) => {
+            const steps = getStatusSteps(leave)
+            
+            return (
+              <div key={leave.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                {/* Header */}
+                <div className="bg-[#F3F4F6] p-6 md:px-10">
+                  <h3 className="text-xl font-bold text-gray-900">{leave.leaveType.name}({leave.days} วัน)</h3>
+                  <p className="text-gray-600 mt-1 text-sm">{formatLeaveDateRange(new Date(leave.startDate), new Date(leave.endDate))}</p>
+                </div>
+                
+                {/* Timeline Body */}
+                <div className="p-8 md:px-12 md:py-10">
+                  <div className="relative border-l-2 border-gray-300 ml-2 space-y-12">
+                    {steps.map((step, index) => {
+                      // Adjusting dot position to perfectly align with the border
+                      const dotClasses = 
+                        step.state === 'completed' ? 'bg-[#10B981]' : 
+                        step.state === 'current' ? 'bg-[#06B6D4]' : 
+                        'bg-[#F3F4F6] border-2 border-gray-200';
                         
-                        <div className="relative flex flex-col md:flex-row justify-between gap-6 md:gap-0">
-                          {steps.map((step, index) => {
-                            const Icon = step.icon
-                            let bgColor = "bg-white border-2 border-gray-200 text-gray-400"
-                            if (step.completed) bgColor = "bg-green-500 border-2 border-green-500 text-white"
-                            if (step.current) bgColor = "bg-[#0B0F4E] border-2 border-[#0B0F4E] text-white ring-4 ring-blue-100"
+                      return (
+                        <div key={step.id} className="relative pl-10">
+                          {/* Dot */}
+                          <div className={`absolute -left-[9px] top-1.5 w-4 h-4 rounded-full ${dotClasses}`} />
+                          
+                          {/* Content */}
+                          <div className="-mt-0.5">
+                            <h4 className={`text-lg font-bold ${
+                                step.state === 'upcoming' ? 'text-gray-300' : 'text-gray-900'
+                              }`}>{step.name}</h4>
                             
-                            return (
-                              <div key={step.id} className="relative z-10 flex flex-row md:flex-col items-center gap-4 md:gap-3 group">
-                                {/* Mobile line connector */}
-                                {index !== steps.length - 1 && (
-                                  <div className="absolute left-[1.125rem] top-10 bottom-[-1.5rem] w-0.5 bg-gray-200 md:hidden"></div>
-                                )}
-                                
-                                <div className={`flex items-center justify-center w-10 h-10 rounded-full transition-colors ${bgColor}`}>
-                                  {step.completed ? <CheckCircle2 className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
-                                </div>
-                                <div className="text-left md:text-center">
-                                  <p className={`text-sm font-bold ${step.current ? 'text-[#0B0F4E]' : step.completed ? 'text-green-600' : 'text-gray-500'}`}>
-                                    {step.name}
-                                  </p>
-                                </div>
+                            {step.date && step.state !== 'upcoming' && (
+                              <div className="mt-1 mb-3">
+                                <span className="text-[#0ea5e9] text-sm border-b border-[#0ea5e9] pb-0.5">{step.date}</span>
                               </div>
-                            )
-                          })}
+                            )}
+                            
+                            {step.description && (
+                              <div className={`mt-2 ${
+                                  step.id === 'SUBMITTED' ? 'bg-[#F3F4F6] p-4 rounded-md w-full' : ''
+                                }`}>
+                                <p className={`text-sm ${
+                                    step.state === 'upcoming' ? 'text-gray-200' : 'text-gray-500'
+                                  }`}>{step.description}</p>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )
-            })
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+          {displayLeaves.length === 0 && (
+            <div className="bg-white rounded-2xl p-10 text-center shadow-sm border border-gray-100">
+              <p className="text-gray-500 font-medium">ไม่มีคำขอลาที่อยู่ระหว่างดำเนินการ</p>
+            </div>
           )}
         </div>
       </div>

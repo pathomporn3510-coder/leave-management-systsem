@@ -6,6 +6,71 @@ import { CalendarDays, CheckCircle2, Clock, XCircle, Plus, ChevronDown } from "l
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import prisma from "@/lib/prisma"
+import { format } from "date-fns"
+import { th } from "date-fns/locale"
+
+function formatTimeAgo(date: Date) {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return "เมื่อครู่";
+  if (diffMins < 60) return `${diffMins} นาทีที่แล้ว`;
+  if (diffHours < 24) return `${diffHours} ชม. ที่แล้ว`;
+  if (diffDays === 1) return `เมื่อวานนี้ ${format(date, "HH:mm น.", { locale: th })}`;
+  return format(date, "d MMM yyyy HH:mm น.", { locale: th });
+}
+
+function getFormattedActivity(activity: any) {
+  const thLeaveNames: Record<string, string> = {
+    "Annual Leave": "ลาพักร้อน",
+    "Sick Leave": "ลาป่วย",
+    "Personal Leave": "ลากิจ",
+    "Ordination Leave": "ลาบวช",
+    "Maternity Leave": "ลาคลอด"
+  };
+  const leaveName = thLeaveNames[activity.leaveRequest.leaveType.name] || activity.leaveRequest.leaveType.name;
+  const days = activity.leaveRequest.days;
+  const actorName = `${activity.actor.firstName} ${activity.actor.lastName}`;
+
+  switch (activity.action) {
+    case "CREATED":
+      return `ส่งคำขอ${leaveName} ${days} วัน`;
+    case "UPDATED":
+      return `แก้ไขคำขอ${leaveName} ${days} วัน`;
+    case "MANAGER_APPROVED":
+      return `ผู้จัดการ (${actorName}) อนุมัติคำขอ`;
+    case "HR_APPROVED":
+      return `ฝ่ายบุคคล (${actorName}) อนุมัติคำขอ`;
+    case "CEO_APPROVED":
+      return `ผู้อนุมัติสุดท้าย (${actorName}) อนุมัติสำเร็จ`;
+    case "REJECTED":
+      return `คำขอลาปฏิเสธโดย (${actorName})`;
+    case "CANCELLED":
+      return `ยกเลิกคำขอลา`;
+    default:
+      return `${activity.comment || activity.action}`;
+  }
+}
+
+function getActivityColors(action: string) {
+  switch (action) {
+    case "CREATED":
+    case "UPDATED":
+      return { dot: "bg-orange-400", ring: "ring-orange-50" };
+    case "CEO_APPROVED":
+    case "MANAGER_APPROVED":
+    case "HR_APPROVED":
+      return { dot: "bg-green-400", ring: "ring-green-50" };
+    case "REJECTED":
+    case "CANCELLED":
+      return { dot: "bg-red-400", ring: "ring-red-50" };
+    default:
+      return { dot: "bg-blue-500", ring: "ring-blue-50" };
+  }
+}
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
@@ -20,11 +85,35 @@ export default async function DashboardPage() {
     whereClause = { employeeId: session.user.employeeId }
   }
 
-  const [totalLeaves, pendingLeaves, approvedLeaves, rejectedLeaves] = await Promise.all([
+  let historyWhere = {}
+  if (session.user.role === "USER") {
+    historyWhere = {
+      leaveRequest: {
+        employeeId: session.user.employeeId,
+      },
+    }
+  }
+
+  const [totalLeaves, pendingLeaves, approvedLeaves, rejectedLeaves, recentActivities] = await Promise.all([
     prisma.leaveRequest.count({ where: whereClause }),
     prisma.leaveRequest.count({ where: { ...whereClause, status: "PENDING" } }),
     prisma.leaveRequest.count({ where: { ...whereClause, status: "CEO_APPROVED" } }),
     prisma.leaveRequest.count({ where: { ...whereClause, status: "REJECTED" } }),
+    prisma.leaveHistory.findMany({
+      where: historyWhere,
+      include: {
+        leaveRequest: {
+          include: {
+            leaveType: true,
+          },
+        },
+        actor: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 5,
+    })
   ])
 
   const userName = session.user.email?.split('@')[0] || "xxxxx xxxx"
@@ -166,29 +255,21 @@ export default async function DashboardPage() {
               <h3 className="text-xl font-bold text-gray-800 mb-6">กิจกรรมล่าสุด</h3>
               
               <div className="relative pl-6 border-l-2 border-gray-100 space-y-8 mt-4">
-                <div className="relative">
-                  <span className="absolute -left-[31px] top-1 h-3.5 w-3.5 rounded-full bg-orange-400 border-2 border-white ring-4 ring-orange-50"></span>
-                  <div>
-                    <h4 className="text-sm font-bold text-gray-800">ส่งคำขอลาพักร้อน 3 วัน</h4>
-                    <p className="text-xs text-gray-400 mt-1">15 ชม. ที่แล้ว</p>
-                  </div>
-                </div>
-
-                <div className="relative">
-                  <span className="absolute -left-[31px] top-1 h-3.5 w-3.5 rounded-full bg-green-400 border-2 border-white ring-4 ring-green-50"></span>
-                  <div>
-                    <h4 className="text-sm font-bold text-gray-800">หัวหน้าอนุมัติ</h4>
-                    <p className="text-xs text-gray-400 mt-1">เมื่อวาน, 14:30</p>
-                  </div>
-                </div>
-
-                <div className="relative">
-                  <span className="absolute -left-[31px] top-1 h-3.5 w-3.5 rounded-full bg-blue-500 border-2 border-white ring-4 ring-blue-50"></span>
-                  <div>
-                    <h4 className="text-sm font-bold text-gray-800">ระบบอัปเดตสิทธิ์วันลาประจำปี</h4>
-                    <p className="text-xs text-gray-400 mt-1">1 วันที่แล้ว</p>
-                  </div>
-                </div>
+                {recentActivities.map((activity) => {
+                  const colors = getActivityColors(activity.action);
+                  return (
+                    <div key={activity.id} className="relative">
+                      <span className={`absolute -left-[31px] top-1 h-3.5 w-3.5 rounded-full ${colors.dot} border-2 border-white ring-4 ${colors.ring}`}></span>
+                      <div>
+                        <h4 className="text-sm font-bold text-gray-800">{getFormattedActivity(activity)}</h4>
+                        <p className="text-xs text-gray-400 mt-1">{formatTimeAgo(new Date(activity.createdAt))}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+                {recentActivities.length === 0 && (
+                  <p className="text-sm text-gray-400 text-center py-4">ไม่มีกิจกรรมล่าสุด</p>
+                )}
               </div>
             </CardContent>
           </Card>

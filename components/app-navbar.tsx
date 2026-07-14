@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LogOut, User, Menu, LayoutDashboard, FileText, Users, Settings, Building2, CalendarDays } from "lucide-react"
+import { LogOut, User, Menu, LayoutDashboard, FileText, Users, Settings, Building2, CalendarDays, Mail, Bell } from "lucide-react"
 import { signOut, useSession } from "next-auth/react"
 
 import { cn } from "@/lib/utils"
@@ -32,7 +32,7 @@ export function AppNavbar() {
       baseLinks.push(
         { name: "สร้างคำขอลา", href: "/dashboard/user/leaves/new", icon: FileText },
         { name: "สถานะการลา", href: "/dashboard/user/leaves/status", icon: FileText },
-        { name: "ประวัติการลา", href: "/dashboard/user/leaves/my", icon: CalendarDays },
+        { name: "ประวัติการลา", href: "/dashboard/user/leaves/history", icon: CalendarDays },
         { name: "ปฏิทินวันลา", href: "/dashboard/user/leaves/calendar", icon: CalendarDays },
         { name: "ข้อมูลส่วนตัว", href: "/dashboard/user/profile", icon: Users }
       )
@@ -101,6 +101,18 @@ export function AppNavbar() {
 
       <div className="w-full flex-1">
         {/* Placeholder for Search or Breadcrumbs */}
+      </div>
+      <div className="flex items-center gap-2 md:gap-3 text-gray-500 mr-2 md:mr-4">
+        <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+          <Mail className="w-5 h-5" />
+        </button>
+        <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+          <Bell className="w-5 h-5" />
+        </button>
+        <div className="w-px h-6 bg-gray-200 mx-1 hidden sm:block"></div>
+        <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+          <Settings className="w-5 h-5" />
+        </button>
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger

@@ -6,11 +6,12 @@ import { z } from "zod"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { differenceInDays } from "date-fns"
+import { notifyRole, createNotification } from "@/lib/notifications"
 
 const submitLeaveSchema = z.object({
   leaveTypeId: z.string().min(1, "Leave type is required"),
-  startDate: z.date({ required_error: "Start date is required" }),
-  endDate: z.date({ required_error: "End date is required" }),
+  startDate: z.date(),
+  endDate: z.date(),
   reason: z.string().min(5, "Please provide a detailed reason"),
 })
 
@@ -139,7 +140,22 @@ export async function updateLeaveStatus(id: string, newStatus: string, comment?:
       }
     }
     
-    // TODO: Send Email Notifications (Approved/Rejected)
+    // Notifications
+    const request = await prisma.leaveRequest.findUnique({ where: { id } })
+    if (request) {
+      const employee = await prisma.employee.findUnique({ where: { id: request.employeeId } })
+      const user = await prisma.user.findFirst({ where: { employee: { id: request.employeeId } } })
+      
+      if (newStatus === "MANAGER_APPROVED") {
+        await notifyRole("HR", `มีคำขอลาจากคุณ ${employee?.firstName} ${employee?.lastName} รอการตรวจสอบ`)
+      } else if (newStatus === "HR_APPROVED") {
+        await notifyRole("CEO", `มีคำขอลาจากคุณ ${employee?.firstName} ${employee?.lastName} รอการอนุมัติขั้นสุดท้าย`)
+      } else if (newStatus === "CEO_APPROVED" && user) {
+        await createNotification(user.id, `คำขอลาของคุณได้รับการอนุมัติเรียบร้อยแล้ว`)
+      } else if (newStatus === "REJECTED" && user) {
+        await createNotification(user.id, `คำขอลาของคุณไม่ได้รับการอนุมัติ`)
+      }
+    }
 
     revalidatePath("/dashboard")
     return { success: true }
