@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  MANAGER
+  HR
+  CEO
+}
+
+enum LeaveStatus {
+  PENDING
+  MANAGER_APPROVED
+  HR_APPROVED
+  CEO_APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  employee      Employee?
+  notifications Notification[]
+}
+
+model Department {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  employees Employee[]
+}
+
+model Position {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  employees Employee[]
+}
+
+model Employee {
+  id           String @id @default(uuid())
+  employeeCode String @unique
+  firstName    String
+  lastName     String
+  
+  userId       String @unique
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+  
+  positionId   String
+  position     Position @relation(fields: [positionId], references: [id])
+
+  leaveRequests LeaveRequest[]
+  leaveBalances LeaveBalance[]
+  actionHistory LeaveHistory[] 
+}
+
+model LeaveType {
+  id          String         @id @default(uuid())
+  name        String         @unique 
+  defaultDays Int
+  balances    LeaveBalance[]
+  requests    LeaveRequest[]
+}
+
+model LeaveBalance {
+  id           String    @id @default(uuid())
+  employeeId   String
+  employee     Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveTypeId  String
+  leaveType    LeaveType @relation(fields: [leaveTypeId], references: [id])
+  year         Int
+  totalDays    Int
+  usedDays     Float     @default(0)
+
+  @@unique([employeeId, leaveTypeId, year])
+}
+
+model LeaveRequest {
+  id           String      @id @default(uuid())
+  employeeId   String
+  employee     Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveTypeId  String
+  leaveType    LeaveType   @relation(fields: [leaveTypeId], references: [id])
+  
+  startDate    DateTime
+  endDate      DateTime
+  days         Float
+  reason       String      @db.Text
+  status       LeaveStatus @default(PENDING)
+  
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  attachments  Attachment[]
+  history      LeaveHistory[]
+}
+
+model LeaveHistory {
+  id             String       @id @default(uuid())
+  leaveRequestId String
+  leaveRequest   LeaveRequest @relation(fields: [leaveRequestId], references: [id], onDelete: Cascade)
+  
+  action         String       
+  actorId        String       
+  actor          Employee     @relation(fields: [actorId], references: [id])
+  
+  comment        String?      @db.Text
+  createdAt      DateTime     @default(now())
+}
+
+model Attachment {
+  id             String       @id @default(uuid())
+  leaveRequestId String
+  leaveRequest   LeaveRequest @relation(fields: [leaveRequestId], references: [id], onDelete: Cascade)
+  fileUrl        String
+  fileType       String       
+  createdAt      DateTime     @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
