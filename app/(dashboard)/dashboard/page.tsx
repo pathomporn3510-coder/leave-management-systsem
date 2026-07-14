@@ -9,8 +9,20 @@ export default async function DashboardRoot() {
     redirect("/login")
   }
 
+<<<<<<< HEAD
   if (session.user.role === "MANAGER") {
     redirect("/dashboard/manager")
+=======
+  // Redirect based on role
+  if (session.user.role === "CEO") {
+    redirect("/dashboard/ceo")
+  }
+
+  // Fetch some summary stats
+  let whereClause = {}
+  if (session.user.role === "USER") {
+    whereClause = { employeeId: session.user.employeeId }
+>>>>>>> 9602ab106b0d6f569d4f4d718587a6d4e911231d
   }
 
   // TODO: Add other role redirects if needed in the future

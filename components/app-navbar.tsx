@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LogOut, User, Menu, LayoutDashboard, FileText, Users, Settings, Building2, CalendarDays } from "lucide-react"
+import { LogOut, User, Menu, LayoutDashboard, FileText, Users, Settings, Building2, CalendarDays, Mail, Bell } from "lucide-react"
 import { signOut, useSession } from "next-auth/react"
 
 import { cn } from "@/lib/utils"
@@ -67,7 +67,7 @@ export function AppNavbar() {
   const links = getLinks()
 
   return (
-    <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+    <header className="flex h-14 items-center gap-4 border-b bg-white px-4 lg:h-[60px] lg:px-6 shadow-sm z-10">
       <Sheet>
         <SheetTrigger
           render={
@@ -103,7 +103,25 @@ export function AppNavbar() {
       <div className="w-full flex-1">
         {/* Placeholder for Search or Breadcrumbs */}
       </div>
+<<<<<<< HEAD
       <TopActionIcons />
+=======
+
+      {/* Global Actions */}
+      <div className="flex items-center gap-4 md:gap-6 mr-2">
+        <button className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-700">
+          <Mail className="w-5 h-5 stroke-[1.5]" />
+        </button>
+        <button className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-700">
+          <Bell className="w-5 h-5 stroke-[1.5]" />
+        </button>
+        <div className="hidden md:block w-px h-6 bg-gray-200"></div>
+        <button className="hidden md:block p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-700">
+          <Settings className="w-5 h-5 stroke-[1.5]" />
+        </button>
+      </div>
+
+>>>>>>> 9602ab106b0d6f569d4f4d718587a6d4e911231d
       <DropdownMenu>
         <DropdownMenuTrigger
           render={

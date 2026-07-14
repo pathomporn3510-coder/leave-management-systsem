@@ -15,7 +15,8 @@ import {
   Settings,
   ClipboardCheck,
   Building2,
-  FileText
+  FileText,
+  FileCheck
 } from "lucide-react"
 
 export function AppSidebar() {
@@ -24,8 +25,17 @@ export function AppSidebar() {
   const role = session?.user?.role
 
   const getLinks = () => {
+    let dashboardHref = "/dashboard"
+    if (role === "CEO") {
+      dashboardHref = "/dashboard/ceo"
+    }
+
     const baseLinks = [
+<<<<<<< HEAD
       { name: "Dashboard", href: role === "MANAGER" ? "/dashboard/manager" : "/dashboard", icon: PieChart },
+=======
+      { name: "Dashboard", href: dashboardHref, icon: PieChart },
+>>>>>>> 9602ab106b0d6f569d4f4d718587a6d4e911231d
     ]
 
     if (role === "USER") {
@@ -59,8 +69,9 @@ export function AppSidebar() {
 
     if (role === "CEO") {
       baseLinks.push(
-        { name: "รายงาน", href: "/dashboard/ceo/reports", icon: FileText },
-        { name: "อนุมัติ", href: "/dashboard/ceo/approvals", icon: Users },
+        { name: "อนุมัติการลา", href: "/dashboard/ceo/approvals", icon: FileCheck },
+        { name: "รายงานการลา", href: "/dashboard/ceo/reports", icon: Activity },
+        { name: "ปฏิทินวันลา", href: "/dashboard/ceo/calendar", icon: CalendarDays },
       )
     }
 
