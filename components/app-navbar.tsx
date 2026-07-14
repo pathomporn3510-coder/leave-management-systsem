@@ -68,12 +68,14 @@ export function AppNavbar() {
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
       <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="outline" size="icon" className="shrink-0 md:hidden">
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle navigation menu</span>
-          </Button>
-        </SheetTrigger>
+        <SheetTrigger
+          render={
+            <Button variant="outline" size="icon" className="shrink-0 md:hidden">
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle navigation menu</span>
+            </Button>
+          }
+        />
         <SheetContent side="left" className="flex flex-col">
           <div className="flex items-center gap-2 font-semibold pb-6 border-b">
             <Building2 className="h-6 w-6" />
@@ -101,16 +103,18 @@ export function AppNavbar() {
         {/* Placeholder for Search or Breadcrumbs */}
       </div>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="secondary" size="icon" className="rounded-full">
-            <Avatar>
-              <AvatarFallback>
-                {session?.user?.email?.charAt(0).toUpperCase() || "U"}
-              </AvatarFallback>
-            </Avatar>
-            <span className="sr-only">Toggle user menu</span>
-          </Button>
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger
+          render={
+            <Button variant="secondary" size="icon" className="rounded-full">
+              <Avatar>
+                <AvatarFallback>
+                  {session?.user?.email?.charAt(0).toUpperCase() || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <span className="sr-only">Toggle user menu</span>
+            </Button>
+          }
+        />
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>
             {session?.user?.email}
